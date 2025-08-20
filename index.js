@@ -1,5 +1,11 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+
+mongoose.connect('mongodb+srv://phoenix2307:pallada12@cluster0.ct1k0py.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+    .then(() => console.log('DB ok'))
+    .catch((err) => console.log('DB error', err));
+
 
 const app = express();
 app.use(express.json());
@@ -9,12 +15,14 @@ app.get('/', (req, res) => {
 })
 app.post('/auth/login', (req, res) => {
 
-    const token = jwt.sign(
-        {
-            email: req.body.email,
-            fullName: 'Lex UA'
-        }, 'secret2307',
-    )
+    if (req.body.email === 'phoenix@gu.com') {
+        const token = jwt.sign(
+            {
+                email: req.body.email,
+                fullName: 'Lex UA'
+            }, 'secret2307',
+        )
+    }
 
     console.log(req.body);
     res.json({
