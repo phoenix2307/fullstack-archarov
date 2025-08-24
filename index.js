@@ -10,28 +10,43 @@ mongoose.connect('mongodb+srv://phoenix2307:pallada12@cluster0.ct1k0py.mongodb.n
     .then(() => console.log('DB ok'))
     .catch((err) => console.log('DB error', err));
 
-
 const app = express();
 app.use(express.json());
 
-// app.get('/', (req, res) => {
-//     res.send('Hello Lex and Nika!');
-// })
-// app.post('/auth/login', (req, res) => {
-//     if (req.body.email === 'phoenix@gu.com') {
-//         const token = jwt.sign(
-//             {
-//                 email: req.body.email,
-//                 fullName: 'Lex UA'
-//             }, 'secret2307',
-//         )
-//     }
-//     console.log(req.body);
-//     res.json({
-//         success: true,
-//         token,
-//     })
-// })
+app.post('/auth/login', async (req, res) => {
+    try {
+
+        const user = await UserModel.findOne({email: req.body.email})
+        if (!user) {
+            return res.status(404).json({
+                message: 'User not found'
+            })
+        }
+
+        const isValidPass = await bcrypt.compare(req.body.password, user._doc.passwordHash)
+        if (!isValidPass) {
+            return res.status(400).json({
+                message: 'User or password is incorrect'
+            })
+        }
+
+        const token = jwt.sign({
+            _id: user._id
+        }, 'secret123', {expiresIn: '24h'})
+
+        const {passwordHash, ...userData} = user._doc
+        res.json({
+            ...userData,
+            token: token,
+        })
+    }
+    catch (error) {
+        console.log(err)
+        res
+            .status(500)
+            .json({errorMessage: 'Не вдалося авторизуватися'});
+    }
+})
 
 app.post('/auth/register', registerValidation, async (req, res) => {
     try {
@@ -58,8 +73,6 @@ app.post('/auth/register', registerValidation, async (req, res) => {
         }, 'secret123', {expiresIn: '24h'})
 
         const {passwordHash, ...userData} = user._doc
-
-
         res.json({
             ...userData,
             token: token,
