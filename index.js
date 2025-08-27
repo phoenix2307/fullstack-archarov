@@ -5,17 +5,38 @@ import checkAuth from './utils/checkAuth.js'
 import {getMe, login, register} from "./controllers/UserController.js";
 // import {createPost} from "./controllers/PostController.js";
 import * as PostController from './controllers/PostController.js'
+import multer from "multer";
 
 mongoose.connect('mongodb+srv://phoenix2307:pallada12@cluster0.ct1k0py.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0')
     .then(() => console.log('DB ok'))
     .catch((err) => console.log('DB error', err));
 
 const app = express();
+
+const storage = multer.diskStorage({
+    //шлях, де будуть зберігатись картинки
+    destination: (_, __, cb) => {
+        cb(null, 'uploads');
+    },
+    //фіксація назви файлу
+    filename: (_, file, cb) => {
+        cb(null, file.originalname);
+    }
+})
+
+const upload = multer({storage});
+
 app.use(express.json());
 
 app.post('/auth/register', registerValidation, register)
 app.post('/auth/login', loginValidation, login)
 app.get('/auth/me', checkAuth, getMe)
+//=========================================
+app.post('/upload', checkAuth, upload.single('image'), (req, res)=>{
+    res.json({
+        url: `/uploads/${req.file.originalname}`
+    })
+})
 //=========================================
 app.get('/posts', PostController.getAllPosts);
 app.get('/posts/:id', PostController.getPostById);
