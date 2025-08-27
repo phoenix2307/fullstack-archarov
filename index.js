@@ -6,6 +6,7 @@ import {getMe, login, register} from "./controllers/UserController.js";
 // import {createPost} from "./controllers/PostController.js";
 import * as PostController from './controllers/PostController.js'
 import multer from "multer";
+import handleValidationErrors from "./utils/handleValidationErrors.js";
 
 mongoose.connect('mongodb+srv://phoenix2307:pallada12@cluster0.ct1k0py.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0')
     .then(() => console.log('DB ok'))
@@ -27,9 +28,11 @@ const storage = multer.diskStorage({
 const upload = multer({storage});
 
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
-app.post('/auth/register', registerValidation, register)
-app.post('/auth/login', loginValidation, login)
+
+app.post('/auth/register', registerValidation, handleValidationErrors,  register)
+app.post('/auth/login', loginValidation, handleValidationErrors, login)
 app.get('/auth/me', checkAuth, getMe)
 //=========================================
 app.post('/upload', checkAuth, upload.single('image'), (req, res)=>{
@@ -40,9 +43,9 @@ app.post('/upload', checkAuth, upload.single('image'), (req, res)=>{
 //=========================================
 app.get('/posts', PostController.getAllPosts);
 app.get('/posts/:id', PostController.getPostById);
-app.post('/posts', checkAuth, postCreateValidation, PostController.createPost);
+app.post('/posts', checkAuth, postCreateValidation, handleValidationErrors, PostController.createPost);
 app.delete('/posts/:id', checkAuth, PostController.deletePost);
-app.patch('/posts/:id', checkAuth, PostController.updatePost);
+app.patch('/posts/:id', checkAuth, postCreateValidation, handleValidationErrors, PostController.updatePost);
 
 app.listen(4444, (err) => {
     if (err) {
