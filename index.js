@@ -1,12 +1,11 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import {registerValidation, loginValidation, postCreateValidation} from './validations.js'
-import checkAuth from './utils/checkAuth.js'
-import {getMe, login, register} from "./controllers/UserController.js";
-// import {createPost} from "./controllers/PostController.js";
-import * as PostController from './controllers/PostController.js'
 import multer from "multer";
+import {getMe, login, register, PostController} from "./controllers/index.js";
+import checkAuth from "./utils/checkAuth.js";
 import handleValidationErrors from "./utils/handleValidationErrors.js";
+
 
 mongoose.connect('mongodb+srv://phoenix2307:pallada12@cluster0.ct1k0py.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0')
     .then(() => console.log('DB ok'))
@@ -31,11 +30,11 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
 
-app.post('/auth/register', registerValidation, handleValidationErrors,  register)
+app.post('/auth/register', registerValidation, handleValidationErrors, register)
 app.post('/auth/login', loginValidation, handleValidationErrors, login)
 app.get('/auth/me', checkAuth, getMe)
 //=========================================
-app.post('/upload', checkAuth, upload.single('image'), (req, res)=>{
+app.post('/upload', checkAuth, upload.single('image'), (req, res) => {
     res.json({
         url: `/uploads/${req.file.originalname}`
     })
